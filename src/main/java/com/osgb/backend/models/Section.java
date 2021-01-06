@@ -16,6 +16,9 @@ public class Section {
     @JoinColumn
     private Chapter chapter;
 
+    @Column
+    private String title;
+
     public Long getId() {
         return id;
     }
@@ -37,5 +40,13 @@ public class Section {
 
     public void setChapter(Chapter chapter) {
         this.chapter = chapter;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
     }
 }

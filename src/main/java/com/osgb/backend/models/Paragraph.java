@@ -12,6 +12,9 @@ public class Paragraph {
     @JoinColumn
     private Section section;
 
+    @Column
+    private String title;
+
     public Long getId() {
         return id;
     }
@@ -26,5 +29,13 @@ public class Paragraph {
 
     public void setSection(Section section) {
         this.section = section;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
     }
 }

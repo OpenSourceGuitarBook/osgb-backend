@@ -12,6 +12,9 @@ public class Chapter {
     @OneToMany(mappedBy = "chapter")
     private Set<Section> sections;
 
+    @Column
+    private String title;
+
     public Long getId() {
         return id;
     }
@@ -26,5 +29,13 @@ public class Chapter {
 
     public void setSections(Set<Section> sections) {
         this.sections = sections;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
     }
 }
