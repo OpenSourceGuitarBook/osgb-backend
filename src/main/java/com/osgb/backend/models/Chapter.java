@@ -9,7 +9,10 @@ public class Chapter {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToMany(mappedBy = "chapter")
+    @OneToMany(mappedBy = "chapter",
+            cascade = CascadeType.ALL,
+            fetch = FetchType.LAZY,
+            orphanRemoval=true)
     private Set<Section> sections;
 
     @Column

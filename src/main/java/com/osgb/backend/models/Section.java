@@ -9,10 +9,13 @@ public class Section {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToMany(mappedBy = "section")
+    @OneToMany(mappedBy = "section",
+    cascade = CascadeType.ALL,
+    fetch = FetchType.LAZY,
+            orphanRemoval=true)
     private Set<Paragraph> paragraphs;
 
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn
     private Chapter chapter;
 

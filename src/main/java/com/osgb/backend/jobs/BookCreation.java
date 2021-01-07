@@ -1,7 +1,9 @@
 package com.osgb.backend.jobs;
 
+import com.osgb.backend.dao.ChapterRepository;
 import com.osgb.backend.models.Paragraph;
 import com.osgb.backend.models.Section;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
@@ -21,6 +23,9 @@ public class BookCreation implements
         ApplicationListener<ContextRefreshedEvent> {
 
     public static final String TITLE_SEPARATOR = "-";
+    public static final String PATH_SEPARATOR = "/";
+    @Autowired
+    ChapterRepository chapterRepository;
     @Value("${osgb.book.rootfolder}")
     private String root;
 
@@ -50,7 +55,7 @@ public class BookCreation implements
 
                     if (name.contains(TITLE_SEPARATOR)) {
                         c.chapter.setTitle(name.substring(name.indexOf(TITLE_SEPARATOR) + 1).strip());
-                        c.chapter.setIndex(name.substring(0, name.indexOf(TITLE_SEPARATOR)).strip());
+                        c.chapter.setIndex(name.substring(name.lastIndexOf(PATH_SEPARATOR) + 1, name.indexOf(TITLE_SEPARATOR)).strip());
                     } else {
                         c.chapter.setTitle(name);
                     }
@@ -66,16 +71,20 @@ public class BookCreation implements
                 .filter(fileName -> !isPathDirectory(fileName))
                 .map(name -> {
                     Paragraph p = new Paragraph();
+                    name = name.substring(name.lastIndexOf(PATH_SEPARATOR) + 1);
 
                     if (name.contains(TITLE_SEPARATOR)) {
-                        p.setTitle(name.substring(name.indexOf(TITLE_SEPARATOR) + 1).strip());
-                        p.setIndex(name.substring(0, name.indexOf(TITLE_SEPARATOR)).strip());
-                    } else {
-                        p.setTitle(name);
+                        String index = name.substring(0, name.indexOf(TITLE_SEPARATOR)).strip();
+
+                        if (index.matches("[0-9]+.[0-9]+.[0-9]+")) {
+                            p.setTitle(name.substring(name.indexOf(TITLE_SEPARATOR) + 1).strip());
+                            p.setIndex(index);
+                        }
                     }
 
                     return p;
                 })
+                .filter(p -> p.getTitle() != null && !p.getTitle().isEmpty())
                 .collect(Collectors.toList());
     }
 
@@ -86,16 +95,20 @@ public class BookCreation implements
                 .map(name -> {
                     WrappedSection s = new WrappedSection();
                     s.path = name;
+                    name = name.substring(name.lastIndexOf(PATH_SEPARATOR) + 1);
 
                     if (name.contains(TITLE_SEPARATOR)) {
-                        s.section.setTitle(name.substring(name.indexOf(TITLE_SEPARATOR) + 1).strip());
-                        s.section.setIndex(name.substring(0, name.indexOf(TITLE_SEPARATOR)).strip());
-                    } else {
-                        s.section.setTitle(name);
+                        String index = name.substring(0, name.indexOf(TITLE_SEPARATOR)).strip();
+
+                        if (index.matches("[0-9]+.[0-9]+")) {
+                            s.section.setTitle(name.substring(name.indexOf(TITLE_SEPARATOR) + 1).strip());
+                            s.section.setIndex(name.substring(0, name.indexOf(TITLE_SEPARATOR)).strip());
+                        }
                     }
 
                     return s;
                 })
+                .filter(s -> s.section.getTitle() != null && !s.section.getTitle().isEmpty())
                 .collect(Collectors.toList());
     }
 
@@ -113,15 +126,17 @@ public class BookCreation implements
                 List<Paragraph> paragraphs = getParagraphs(section);
 
                 // keep only the ones with paragraphs with all the extensions
-                if(paragraphs.size() > 0) {
+                if (paragraphs.size() > 0) {
                     section.section.setParagraphs(new HashSet<>(paragraphs));
-                    section.section.setChapter(chapter.chapter);
                 }
+            }
+
+            if (sections.size() > 0) {
+                chapter.chapter.setSections(sections.stream().map(x -> x.section).collect(Collectors.toSet()));
             }
         }
 
-        // build the data
-        // insert in the DB
+        chapterRepository.saveAll(chapters.stream().map(x -> x.chapter).collect(Collectors.toList()));
     }
 
 
