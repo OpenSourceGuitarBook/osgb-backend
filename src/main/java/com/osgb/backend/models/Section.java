@@ -19,6 +19,9 @@ public class Section {
     @Column
     private String title;
 
+    @Column
+    private String index;
+
     public Long getId() {
         return id;
     }
@@ -48,5 +51,13 @@ public class Section {
 
     public void setTitle(String title) {
         this.title = title;
+    }
+
+    public String getIndex() {
+        return index;
+    }
+
+    public void setIndex(String index) {
+        this.index = index;
     }
 }
